@@ -1,0 +1,254 @@
+	<!-- 
+	notery main html pag - August 2016
+	App Originally Based on Dave Winer's
+		myword.io/testing/hellomediumeditor.html
+		but now using summernote.org 
+	 -->
+		<div id="warnings" class="warnings_mobile" style="display:none"></div>
+
+		<div id="mainDiv">
+			<div id="topBar" class="topBar_Mobile">
+				<span class="fa fa-reorder clickable topBut_Mobile" id="click_xtraMenuSlider_0" >&nbsp; </span>
+				<span class="clickable topBut_Desktop" id="click_xtraMenuSlider_1" style="display:none">More... &nbsp; &nbsp; &nbsp; </span>
+				<span class="fa fa-refresh clickable topBut_Mobile" id="click_syncNow_0" ></span>
+				<span class="clickable topBut_Desktop" id="click_syncNow_1" style="display:none">Sync Now &nbsp; &nbsp; &nbsp;</span>
+				<span class="fa fa-plus clickable topBut_Mobile" id="click_newNote_0" >&nbsp;</span>
+				<span class="clickable topBut_Desktop" id="click_newNote_1" style="display:none">New Note &nbsp; &nbsp; &nbsp; </span>
+
+			</div>
+
+			<div class="oneliner label_Mobile"  contentEditable=true id="idTitle" data-placeholder="Title"></div>
+			<div class="oneliner label_Mobile" contentEditable=true id="idLabels" data-placeholder="Labels"></div>
+
+			<div class="editor_Mobile edTextSize_large" id="editorContainer">
+				<div class="summerEditor" id="summerEditor"></div>
+			</div>
+
+			<div class="info_Mobile" id="idInfo"> &nbsp;</div>
+
+			<div id="click_menuBackGround"></div>
+
+
+			<div id="leftBar" class="leftBarMobile">
+				
+				<div id="searchOuter" class"searchOuter_Mobile">
+					<div class="oneliner" id="idSearchBox" contentEditable=true  data-placeholder=" &nbsp; Search" ></div>
+					
+					<div id="leftbarToggleHolder">
+					<span class="leftBarSearchButts leftbarSearchButtInactive" 	id="click_searchNowAllText">All Text</span>
+					<span class="leftBarSearchButts leftbarSearchButtActive" id="click_searchNowHeaders">Headers </span>
+					</div>
+
+
+
+					<div class="leftBarSearchButts clickable" style="display:none" id="click_clearSearch">Clear results</div>
+					<div id="moreSearchptions">
+					</div>
+
+				</div>
+				<br/>
+
+				<div class="spacer"> </div>
+				<div class="noteListItem"> </div>
+
+				<div id="notesList"> </div>
+				<div class="spacer"> </div>
+
+				<div class="leftBarSearchButts clickable" id="click_takeOffline_1">Keep Local Copy</div>
+				<div class="leftBarSearchButts clickable" id="click_importToPosts_2">Import all</div>
+
+				<div id="onlineSearchedNotesList"></div>
+
+				<div class="leftBarSearchButts clickable" id="click_searchOnline_1">More Online</div>
+
+
+
+			</div>
+
+			<div id="pastebin" style="display:none"><span> </span></div>
+
+			</div>
+
+		</div>
+
+		<img id="click_topLogo" src="static/Notery_N_v1.png"/>
+		<div id="xtraMenu">
+			<div id="topBar2" class="topBar_Desktop">
+				<span class="fa fa-reorder clickable topBut_Desktop" id="click_xtraMenuClose_0" >&nbsp; </span>
+				<span class="clickable topBut_Desktop" id="click_xtraMenuClose_1">Close Menu &nbsp; &nbsp; &nbsp; </span>
+			</div>
+			<div id="menuOuter">
+				<div id="menuInner">
+					<div class="xtraMenuItem">
+					</div>
+					<div class="xtraMenuItem" id="xtras_openFreezrToLogin" style="display:none">
+						<br/>
+						<div class="xtraMenu_Title showing" >
+							To Login, press the freezr button (top right)
+						</div>
+						<div class="leftBarLabels"> &nbsp;</div>
+						<br/>
+					</div>
+
+
+					<div class="xtraMenuItem" id="xtras_currentNoteDelDiv">
+						<div class="xtraMenu_Title showing" >
+							Delete this note, <span id="xtras_currentNote"></span>
+						</div>
+						<div class="xtraMenuCenterer">
+							<span class="clickable  fa fa-trash-o topBut_Desktop" id="click_deleteNote_1" > Delete note now</span>
+						</div>
+						
+						<div class="leftBarLabels"> &nbsp;</div>
+					</div>
+
+
+					<div class="xtraMenuItem" id="xtras_storageDiv">
+						<div class="xtraMenu_Title showing" >
+							Total local storage used: <span id="xtras_ttl_st"></span>%, of which, notery is using <span id="xtras_noteryPc"></span>%.
+						</div>
+						<div>Notery uses browser local storage which generally is limited to 5MB of data. If Notery is using a lot of data, it will be good store older items on your freezr server only, and remove them from this device.
+						</div>
+						<div class="xtraMenuCenterer">
+							<span class="clickable  fa fa-database topBut_Desktop" id="click_cleanNotes_1" > Remove Old Notes from this Device</span>
+						</div>
+					</div>
+					<div class="xtraMenuItem" id="xtras_deleteDataDiv">
+						<div class="xtraMenu_Title showing" >
+							Delete Local Data and Quit
+						</div>
+						<div >
+							This erases all locally stored data. Please make sure you do this if someone else has access to this device.
+							<br>Also note that this will NOT log you out.
+						</div>
+						<div class="xtraMenuCenterer">
+							<span class="clickable fa fa-times topBut_Desktop" id="click_quitNotery_1" > Remove Data From This Device and Quit Notery</span>
+						</div>
+					</div>
+
+					<div class="xtraMenuItem" id="xtrasBackupSection">
+						<div class="xtraMenu_Title showing" >
+							Back Up Recent Notes
+						</div> 
+						<div >
+							This downloads a copy of your notes to your downloads folder on this computer. This does not work on ios/android mobile devices. You can also set a timer so that the download takes place regularly - serving as a backup.
+							<br/>Note that notes are downloaded non-encrypted. And that notes which are only stored on your freezr server are not downloaded here. (ie Older notes not showing on the left menu are not saved.)
+						</div>
+						<div class="xtraMenuCenterer">
+							<span class="clickable fa fa-save topBut_Desktop" id="click_doLocalBackUp_1" > Save a copy now</span>
+						</div>
+
+						<div>
+							&nbsp;
+						</div>
+						<div >
+							Automatically download a copy of your recent notes onto the device, at an interval of <span  class="oneliner" contentEditable=true data-placeholder="___" id="saveMinutes"></span> minutes.
+						</div>
+						<div class="xtraMenuCenterer">
+							<span class="fa fa-clock-o topBut_Desktop notClickingDummy" id="click_saveIntervals_1" > Save at Intervals</span>
+						</div>
+						<div class="xtraMenu_Title showing" >
+							Open Copy of BackUps
+						</div>
+						<div id="fileErrs"> </div>
+						<form class="xtraMenuCenterer" ><input type="file" id="fileUploader" name="files[]" multiple /></form>
+							
+						<div class="xtraMenuCenterer" >
+							<span class="fa fa-upload clickable topBut_Desktop" id="click_viewBackUpNotes_1" > View Backed Up Notes</span>
+						</div>
+					</div>
+					<div class="xtraMenuItem" id="xtras_encyptOuter">
+						<br/><br/>
+						<div class="xtraMenu_Title showing" >
+							Encyption is <span id="xtraMenuEncIsOn">On.</span><span id="xtraMenuEncIsOff_1">Off.</span>
+						</div>
+						<div id = "xtraMenuEncPwdNeeded">
+							Posts are encrypted. You need to enter your password to retrieve them.
+						</div>
+						<div id="xtraMenuEncIsOff_2">
+							You can enter a password to turn encryption on. This password cannot change, and if you forget your password there is no way to retrieve your posts.<br/>
+							Only posts synced going forward will be encrypted! (Older posts can be encrypted manually.)
+						</div>
+						<br/>
+						<div id="xtraMenuPwdEnter_1">
+								<div>
+									Enter password: <span  class="oneliner" contentEditable=true id="encPassword_1" data-placeholder="_____________"></span>
+								</div>
+								<br/>
+								<div class="xtraMenuCenterer" >
+									<span class="fa fa-key topBut_Desktop notClickingDummy" id="click_savePassword_1" > Set Password</span>
+								</div>
+								<br/>
+
+						</div>
+						<div id="xtras_passwordRadio">
+							<b>Do you want your password to be stored on this device?</b>
+							<table>
+								<tr class="tablelined">
+									<td class="radio"><input type="radio" name="keepPasswordOnDevice" value="keep" checked=true> </td>
+									<td >Keep Password On Device. (Other freezr programs may be able to see this password.)</td>
+								</tr>
+								<tr class="tablelined">
+									<td class="radio"><input type="radio" name="keepPasswordOnDevice" value="notkeep"> </td>
+									<td>Do NOT keep Password on Device. (You will have to enter it every time you restart notery.)</td>
+								</tr class="tablelined">
+								<tr class="tablelined"><td></td><td></td></tr>
+							</table>
+							<br/>
+						</div>
+
+						<div id="xtraMenuPwdEnter_2">
+							<b>Please check the correct button before proceeding:</b><br/>
+							<table>
+								<tr class="tablelined">
+									<td><input type="radio" name="forgettingPword" value="bad1"></td>
+									<td>If I forget my password, I can reset it later using my email address.</td>
+								</tr>
+								<tr class="tablelined">
+									<td><input type="radio" name="forgettingPword" value="bad2"></td>
+									<td>If I lose my password, I can call up customer service and have them reset the password.</td>
+								</tr>
+								<tr class="tablelined">
+									<td><input type="radio" name="forgettingPword" value="good"></td>
+									<td>If I forget my password, all my data is lost forever and I can never retrieve my posts again.</td>
+								</tr>
+								<tr class="tablelined">
+									<td><input type="radio" name="forgettingPword" value="bad3"></td>
+									<td>If I lose my password, my nephew will figure it out for me.</td>
+								</tr>
+								<tr class="tablelined"><td></td><td></td></tr>
+							</table>
+
+							<br/>
+
+							<div>
+								Please re-Enter password: <span  class="oneliner" contentEditable=true id="encPassword_2" data-placeholder="_____________"></span>
+							</div>
+
+							<br/>
+
+							<div class="xtraMenuCenterer" >
+								<span class="fa fa-close topBut_Desktop clickable" id="click_xtraMenuClose_4" >Cancel</span>
+								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<span class="fa fa-key topBut_Desktop clickable" id="click_savePassword_2" >Now save Password</span>
+							</div>
+						</div>
+
+
+					</div>
+					<div class="xtraMenuItem" style="text-align:center">
+						<br/>
+						<span class="fa fa-reorder clickable topBut_Desktop" id="click_xtraMenuClose_2" >&nbsp; </span>
+						<span class="clickable topBut_Desktop" id="click_xtraMenuClose_3">Close Menu &nbsp; &nbsp; &nbsp; </span>
+						<br/>
+					</div>
+				</div>
+
+			</div>
+			
+
+	<!-- 
+		App Originally Based on Dave Winer's
+			myword.io/testing/hellomediumeditor.html
+		but now using summernote.org 
+	-->

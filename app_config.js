@@ -1,0 +1,44 @@
+exports.structure= {
+	"meta": {
+		"app_name":"info.freezr.notery",
+		"app_display_name":"Notery",
+		"app_version": "0.01 August 2016",
+		"only_use_collections_listed":false, // true means only accept collections that are in the key list below
+	},
+
+	"pages": {
+		"index": {
+			"page_title":"Notery",
+			"html_file":"index.html",
+			"css_files": ["static/bootstrap.css", "static/font-awesome.min.css", "static/summernote.css","notery_main.css"],
+			"script_files": [ "jquery-3.1.0.js", "bootstrap.js" , "jlos-frozen.js", "summernotery.js","FileSaver.js","notery.js","sjcl.js"]
+		}
+	},
+	
+
+	"collections": {
+		"posts": {
+			"strictly_Adhere_To_schema":false,
+
+			"field_names":{ 
+							"created_locally": {
+								"description":"Date Created (device time)",
+								"type": "date"
+							}, 
+							"fj_modified_locally": {
+								"description":"Date Modified (device time)",
+								"type": "date"
+							}, 
+							"fj_deleted": {
+								"description":"deleted",
+								"type": "bool"
+							}, 
+						},
+
+			}
+	},
+
+	"permissions": {
+	}
+
+}
