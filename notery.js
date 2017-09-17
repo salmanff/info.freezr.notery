@@ -4,11 +4,14 @@
 		//	myword.io/testing/hellomediumeditor.html 
 		//	which is based on github.com/yabwe/medium-editor
 
+
+// NEED TO CHECK THIS AGAINST OLD VERSION IN ELECTRON
+
 var notery; 
 var curr_post_pointer = {
 	// data related to the current post being shown
 	num:0,
-	section:"local",
+	section:"local", 
 	changedSinceChosen:false,
 	created_locally: null,
 	_id:null // _id from server
@@ -921,6 +924,10 @@ var isMobile = function() {
 	//
 	return  (/iPhone|iPod|Android/.test(navigator.userAgent) && !window.MSStream);
 }
+var isMac = function() {
+	//
+	return  /Mac/.test(navigator.userAgent);
+}
 var isSmallScreen = function() {
 	//
 	return (Math.max(window.innerWidth)<500);
@@ -968,10 +975,27 @@ var setMobileVersion = function(force) {
 		bodyDiv = document.getElementsByClassName("panel-body")[0];
 		if (bodyDiv) {bodyDiv.style.paddingTop = usingSmallOrMobile? "50px":"0px";} 
 
+		if (isMac()) { // shoft logo over to make room for buttons
+			if (!usingSmallOrMobile && !freezr.app.isWebBased) { // electron
+				document.getElementById('topBar').style.paddingLeft="175px";
+				document.getElementById('click_topLogo').style.left="75px";
+				document.getElementById('click_topLogo').style.top="0";
+				document.getElementById('click_topLogo').style.height="38px";
+			} else if (usingSmallScreenVersion && !freezr.app.isWebBased) { // electron 
+				document.getElementById('click_topLogo').style.left="65px";
+				document.getElementById('click_topLogo').style.top="4px";
+				document.getElementById('topBar').style.paddingLeft="100px";
+			} else {
+				document.getElementById('topBar').style.paddingLeft=null;
+				document.getElementById('click_topLogo').style.left="4px";
+				document.getElementById('click_topLogo').style.height=null;
+			}
+		}
+		
 		document.getElementById("menuInner").className = isSmallScreen? "xtraMenu_Mobile":"";
 	}
 	if (usingSmallScreenVersion) {
-		var margin = parseInt((window.innerWidth-140)/8);
+		var margin = parseInt((window.innerWidth-140)/9);
 		document.getElementById('click_xtraMenuSlider_0').style.marginLeft=margin+"px";
 		document.getElementById('click_syncNow_0').style.marginLeft=margin+"px";
 		document.getElementById('click_newNote_0').style.marginLeft=margin+"px";
@@ -1056,7 +1080,7 @@ var syncGotNewPosts = function(newPosts, changedPosts) {
 	});
 }
 var syncWarningCB = function(msgJson) {
-	console.log("WARNING message "+msgJson.status+" size "+msgJson.item.body.length) 
+	console.log("WARNING message "+msgJson.status) 
 	if (msgJson && msgJson.msg) {
 		var warnTime = (msgJson.error && msgJson.error=="no connection")? 1000:5000;
 		if (msgJson.error && msgJson.error == "post transform error") {msgJson.msg="There was a problem encypting your post. Syncing is being stopped."}
@@ -1201,7 +1225,7 @@ var doSearchOnline = function(what) {
 	if (!freezr_user_id) {
 		showWarning("Please log in to your freezr to fetch your online notes. (Click upper right logo)");
 	} else {
-		freezr.db.query (
+		freezr.db.query (queryOptions,
 			function(returnJson) {
 				returnJson = freezr.utils.parse(returnJson);
 				if (returnJson && returnJson.results && returnJson.results.length>0) {
@@ -1219,8 +1243,7 @@ var doSearchOnline = function(what) {
 					showWarning("No more items found online.",2000)
 				}
 				document.getElementById("click_searchOnline_1").style.display = onlineSearch.noMoreLeft? "none":"block";
-			},
-			null, queryOptions
+			}
 		);
 	}
 }

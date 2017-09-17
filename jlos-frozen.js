@@ -142,6 +142,7 @@ jlos.prototype.sync = function(theList, options) {
 	} else {
 		this.syncing=true;
 		var queryOptions = {'collection':theList,'query_params':{}};
+		//onsole.log("syncing "+theList)
 		if (this.data.last_server_sync_time && this.data[theList].length>0) {
 			queryOptions.query_params = {'_date_Modified':{'$gt':this.data.last_server_sync_time}};
 		} else {
@@ -150,9 +151,10 @@ jlos.prototype.sync = function(theList, options) {
 			queryOptions.sort = {'_date_Modified': -1};
 		}
 		var self = this;
-		freezr.db.query(function(returnJson) {
+		freezr.db.query(queryOptions, function(returnJson) {
 			returnJson = freezr.utils.parse(returnJson);
 			if (returnJson.error) {
+				console.log("error syncing")
 				self.syncing = false;
 				if (returnJson.errorCode && returnJson.errorCode == "noServer") {
 					options.warningCallBack({error:"no connection", msg:"Could not connect to server"});
@@ -250,12 +252,13 @@ jlos.prototype.sync = function(theList, options) {
 				}
 			}
 
-		}, null, queryOptions);
+		});
 	}
 }
 jlos.prototype.uploadNewItems = function (theList, options) {
 	// for options list, see startSyncItems. (gotNewItemsCallBack and doNotCallUploadItems are not called.)
 	// Unless items cannot be updated, it is unsafe to call this without calling startSyncItems because only startSyncItems checks for conflicts. this function just over-writes the previous version.
+	//onsole.log("uploadNewItems")
 	var self = this;
 	if (!options) options = {};
 	if (!options.warningCallBack) options.warningCallBack = function(msgJson) {console.log("WARNING: "+JSON.stringify(msgJson));}
@@ -276,7 +279,7 @@ jlos.prototype.uploadNewItems = function (theList, options) {
 		// to add device
 		//this.data[theList][listItemNumber].fj_device_modified_on = 
 		this.save();
-		var uploadOptions = {'confirm_return_fields':['fj_local_temp_unique_id','_date_Created','_date_Modified','_id','fj_deleted']};
+		var uploadOptions = {'collection':theList, 'confirm_return_fields':['fj_local_temp_unique_id','_date_Created','_date_Modified','_id','fj_deleted']};
 
 		anItem = JSON.parse(JSON.stringify(anItem));
 
@@ -304,7 +307,7 @@ jlos.prototype.uploadNewItems = function (theList, options) {
 		//onsole.log("going to upload item :"+JSON.stringify(anItem));
 		//onsole.log("with options "+JSON.stringify(uploadOptions));
 		if (!transformError) {
-			freezr.db.write (anItem, function (returnData) {
+			freezr.db.write (anItem, uploadOptions, function (returnData) {
 				// check that the item id is correct - update the item and set modified to null;
 				returnData = freezr.utils.parse(returnData);
 				if (returnData.error) {
@@ -332,7 +335,7 @@ jlos.prototype.uploadNewItems = function (theList, options) {
 					if (options.endCallBack) options.endCallBack();
 				}
 
-			}, theList, uploadOptions );
+			} );
 		}
 
 	} else { // no new items

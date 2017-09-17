@@ -1,9 +1,9 @@
-exports.structure= {
+{
 	"meta": {
 		"app_name":"info.freezr.notery",
 		"app_display_name":"Notery",
 		"app_version": "0.01 August 2016",
-		"only_use_collections_listed":false, // true means only accept collections that are in the key list below
+		"only_use_collections_listed":false // true means only accept collections that are in the key list below
 	},
 
 	"pages": {
@@ -32,8 +32,8 @@ exports.structure= {
 							"fj_deleted": {
 								"description":"deleted",
 								"type": "bool"
-							}, 
-						},
+							}
+						}
 
 			}
 	},
