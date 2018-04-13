@@ -11,27 +11,42 @@ h1, h2, h3 {font-size: inherit;}
     background-color: whitesmoke;
     line-height: 100%;
 }
+
 .topBar_Desktop {
     top:0;
     height: 23px;
     padding-top: 5px;
-    padding-left: 175px;
+    padding-left: 125px;
     z-index: 10;
 }
-.topBar_Desktop_small, .topBar_Mobile  {
+.topBar_Desktop_small {
     top:0;
     height: 47px;
     padding-top: 10px;
-    padding-left: 50px;
+    padding-left: 75px;
     z-index: 10;
+}
+.topBar_Mobile,  .topBar_Mobile_Header {
+    position: absolute;
+    padding-top: 10px;
+    top:0px;
+    -webkit-transition-duration: 500ms;
+    -webkit-transition-timing-function:"ease-in";
+    -webkit-transform: translate3d(0, -80px, 0);
+    z-index: 11;
+}
+.topBar_Mobile  {
+    height: 47px;
+    padding-left: 80px;
+    padding-top: 10px;
+    top:0px;
 }
 .topBar_Mobile_Header {
-    top:0;
     height: 70px;    
+    padding-left: 60px;
     padding-top: 35px;
-    padding-left: 50px;
-    z-index: 10;
 }
+
 .topBut_Mobile {
     padding-top: 0;
     margin-top: -6px;
@@ -75,7 +90,7 @@ h1, h2, h3 {font-size: inherit;}
 }
 .clickable {
 	cursor: pointer;
-	color: #2060ff !important;
+	color: #2060ff;
 }
 
 #click_syncNow_0, #click_newNote_0, #click_xtraMenuSlider_0, #click_xtraMenuClose_0  {
@@ -104,6 +119,7 @@ h1, h2, h3 {font-size: inherit;}
     font-size: 14px;
     width: 200px;
     padding: 10px;
+    padding-top: 22px;
     background-color: white;
     color: #868686;
     overflow-y: scroll;
@@ -266,13 +282,13 @@ h1, h2, h3 {font-size: inherit;}
 }
 
 #idTitle{
+	font-size:24px;
     color: #868686;
     line-height: 110%;
     background-color: none;
     display: none;
 }
 .title_Desktop {
-    font-size:24px;
     position: absolute;
     max-height: 26px;
     top: 47px;
@@ -280,7 +296,6 @@ h1, h2, h3 {font-size: inherit;}
     right:25%;
 }
 .title_Desktop_small {
-    font-size:24px;
     position: absolute;
     max-height: 26px;
     top: 47px;
@@ -288,11 +303,14 @@ h1, h2, h3 {font-size: inherit;}
     right:6px;
 }
 .title_Mobile {
-    font-size:30px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    margin-left:6px;
-    margin-right:6px;
+    margin-top: 3px;
+    margin-left:60px;
+    margin-right:52px;
+}
+.title_Mobile_Header {
+    margin-top: 23px;
+    margin-left:60px;
+    margin-right:52px;
 }
 
 #idLabels {
@@ -322,18 +340,16 @@ h1, h2, h3 {font-size: inherit;}
     right:6px;
 }
 .label_Mobile {
-    font-size: 24px;
-    margin-left:6px;
-    margin-right:6px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 5px;
+    margin-left:60px;
+    margin-right:52px;
     font-size: 18px;
 }
 #idEditor {
 	overflow: scroll;
 	font-size: 16px;
 	border: 1px solid silver;
-	line-height: 120%;
+	line-height: 140%;
     color: #868686;
     background-color: none;
 }
@@ -345,7 +361,6 @@ h1, h2, h3 {font-size: inherit;}
 }
 .edTextSize_large {
     font-size: 24px;
-    line-height: 30px;
 } 
 .editor_Desktop {
     position:absolute;
@@ -362,6 +377,11 @@ h1, h2, h3 {font-size: inherit;}
     bottom:5px; 
 }
 .editor_Mobile {
+    margin-top: 5px;
+    margin-right: 6px;
+    margin-left: 6px;
+}
+.editor_Mobile_Header {
     margin-top: 5px;
     margin-right: 6px;
     margin-left: 6px;
@@ -498,9 +518,6 @@ content:attr(data-placeholder) }
 }
 #encPassword_1, #encPassword_2 {
     min-width: 50px;    
-}
-#keepOnDeviceTable {
-    margin-left: 30px;
 }
 #fileUploader {
     width: 100%;

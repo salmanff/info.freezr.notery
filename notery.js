@@ -1,11 +1,9 @@
 
-// notery.js - a freezr app by sf v2016-08
+// notery.js - a freezr app by sf v2017-11
 		// App originaly based on Dave Winer's
 		//	myword.io/testing/hellomediumeditor.html 
 		//	which is based on github.com/yabwe/medium-editor
 
-
-// NEED TO CHECK THIS AGAINST OLD VERSION IN ELECTRON
 
 var notery; 
 var curr_post_pointer = {
@@ -30,6 +28,7 @@ var stats = {
 	}
 	var SAVES_PER_SYNC = 5;
 	var NUM_NOTES_TO_DOWNLOAD = 20; 
+var screens = {width:window.innerWidth,height:window.innerHeight}
 
 // Start Up
 freezr.initPageScripts = function() {
@@ -66,7 +65,8 @@ freezr.initPageScripts = function() {
 				*/
 			]	
 		  },
-		'addConflistAsNew':createConflictedNote
+		'addConflistAsNew':createConflictedNote,
+		'handleConflictedItem':handleConflictedNote
 	}); 
 	if (notery.data.freezr_app_code) {
 		freezr_app_code = notery.data.freezr_app_code;
@@ -156,9 +156,7 @@ freezr.initPageScripts = function() {
 			evt.preventDefault();
 			saveNote();
 			doSyncPosts();
-		} else if (evt.keyCode== 27){
-			freezr.utils.closeMenuOnEscape(evt);
-		}
+		} 
 	}
 	window.addEventListener("popstate", function(e) {
 		e.preventDefault();
@@ -265,8 +263,8 @@ var initialiseEditors = function() {
 		height:((usingMobileVersion )? null:(window.innerHeight-150) ),
 		toolbar: toolbarlist,
 		buttons: {indy: indentButton, outy: outdentButton},
+		disableLinkTarget: true
 	});
-
 	bodyDiv = document.getElementsByClassName("panel-body")[0];
 
 	
@@ -286,7 +284,7 @@ var initialiseEditors = function() {
 			scrollTimer = setTimeout(function(){ toolbarDiv.style.display = "block";}, 100);
 
 			toolbarDiv.style.display = "none";
-			var moveAmt = document.body.scrollTop>60? (-document.getElementById("editorContainer").getBoundingClientRect().top+20) : 0; 
+			var moveAmt = window.scrollY>140? (-document.getElementById("editorContainer").getBoundingClientRect().top-2+(hasiPhoneHeader()? 18:0)) : 0; 
 			toolbarDiv.style.top=(moveAmt+"px")
 		};
 	} 
@@ -296,7 +294,6 @@ var initialiseEditors = function() {
 	$('#summerEditor').on('summernote.keydown', function(evt) {
 		if (!stats.localSaveIntervaler) stats.localSaveIntervaler = setInterval(saveNote,2000);
 	});
-
 };
 var doClick = function (args) {
 	//onsole.log("click "+args)
@@ -519,8 +516,6 @@ var gotoNote = function (num, section, fromHistory) {
 
 	showCurrentNote(fromHistory);
 }
-
-freezr.app.logoutCallback = removeJlos;
 var removeJlos = function() {
     notery.removeSyncedFreezrInfo("posts");
     notery.data.last_server_sync_time= 0;
@@ -533,10 +528,12 @@ var removeJlos = function() {
     populateLeftPanel();
     showFirstValidNote();
 }
+freezr.app.logoutCallback = removeJlos;
+
 var removeJlosAndQuit = function() {
     notery.reInitializeData();
     notery.save();
-	freezr.utils.logout();
+	if (freezr_user_id) freezr.utils.logout();
 }
 function post_consistent_with_current_data (post_details) {
 	if (!post_details)  {
@@ -605,9 +602,7 @@ var showCurrentNote = function(fromHistory) {
 			$('#summerEditor').summernote('code','<span style="color:red">This note is encrypted. Please enter your password to see the note.</span>')
 		} else {
 			$('#summerEditor').summernote('code',curr_post_details.body)
-			setTimeout(function() {
-              	noteryCleanBody();	          	
-	        },10);
+			//setTimeout(function() {noteryCleanBody();},10);
 		}
 
 	} else {
@@ -619,7 +614,6 @@ var noteryCleanBody = function() {
 	bodyDiv = document.getElementsByClassName("panel-body")[0];
 	cleanElementNotery(bodyDiv);
 }
-
 var showCurrentNoteStats = function() {
 	var temptext="";
 	var curr_post_details = curr_post_pointer.section== "local"? notery.data.posts[curr_post_pointer.num]: onlineSearch.posts[curr_post_pointer.num];
@@ -679,8 +673,17 @@ var createConflictedNote = function(copyOfExistingItem) {
 		copyOfExistingItem.body = "<p>COPY OF POST MADE WITH CHANGES YOU MADE LOCALLY. Other copy was downloaded from your freezr."+freezr.utils.longDateFormat(new Date().getTime())+"</p> "+copyOfExistingItem.body;
 		return copyOfExistingItem;
 	} else {return null}
-
 }
+var handleConflictedNote = function (returnItem, resultIndex){
+	// todo - not error checked
+	if (returnItem.fj_deleted) {
+		var noteDiv = document.getElementById('click_gotoNote_'+resultIndex+"_wrap");
+		if (noteDiv) removeDiv(noteDiv);
+		if (notery.data.current_post == resultIndex) {showFirstValidNote();}
+	}
+	if (resultIndex == notery.data.current_post) showCurrentNote();
+}
+
 var showWarning = function(msg, timing) {
 	// null msg clears the message
 	//onsole.log("warning "+msg)
@@ -922,11 +925,15 @@ var xraMenuHideAllExceptEnc = function() {
 var usingMobileVersion = true, usingSmallScreenVersion = true;
 var isMobile = function() {
 	//
-	return  (/iPhone|iPod|Android/.test(navigator.userAgent) && !window.MSStream);
+	return (/iPhone|iPod|Android/.test(navigator.userAgent) && !window.MSStream);
 }
 var isMac = function() {
 	//
 	return  /Mac/.test(navigator.userAgent);
+}
+var isAndroid = function () {
+	//
+	return  /Android/.test(navigator.userAgent);
 }
 var isSmallScreen = function() {
 	//
@@ -941,7 +948,10 @@ var hasiPhoneHeader = function () {
 }
 var setMobileVersion = function(force) {
 	// get mobileversion from screen size
-	if (!force && usingMobileVersion==isMobile() && usingSmallScreenVersion==isSmallScreen()) {
+	
+	var androidException = (!force && isAndroid() && ((window.innerWidth == screens.width ) || (window.innerHeight == screens.height)));
+	
+	if ((!force && usingMobileVersion==isMobile() && usingSmallScreenVersion==isSmallScreen()) || (!force && androidException) ){
 		//onsole.log("do nothing ")	
 	} else {
 		usingSmallScreenVersion=isSmallScreen();
@@ -971,17 +981,19 @@ var setMobileVersion = function(force) {
 		document.getElementById('idInfo').className = usingMobileVersion? "info_Mobile":(usingSmallScreenVersion?"info_DesktopSmallScreen" :"info_Desktop");
 		document.getElementById('searchOuter').className = usingSmallOrMobile? "searchOuter_Mobile":"searchOuter_Desktop";
 		document.getElementById('click_topLogo').src = usingSmallOrMobile? "static/Notery_N_v1.png":"static/Notery_Logo_v2.png";
-		if (hasiPhoneHeader()) document.getElementById("click_topLogo").style.top="20px";
+		document.getElementById("click_topLogo").style.top   = hasiPhoneHeader()? "20px":"0px";
+		document.getElementById("freezerMenuButt").style.top = hasiPhoneHeader()? "20px":"3px";
+
 		bodyDiv = document.getElementsByClassName("panel-body")[0];
 		if (bodyDiv) {bodyDiv.style.paddingTop = usingSmallOrMobile? "50px":"0px";} 
 
-		if (isMac()) { // shoft logo over to make room for buttons
+		if (isMac()) { // shift logo over to make room for buttons
 			if (!usingSmallOrMobile && !freezr.app.isWebBased) { // electron
 				document.getElementById('topBar').style.paddingLeft="175px";
 				document.getElementById('click_topLogo').style.left="75px";
 				document.getElementById('click_topLogo').style.top="0";
 				document.getElementById('click_topLogo').style.height="38px";
-			} else if (usingSmallScreenVersion && !freezr.app.isWebBased) { // electron 
+			} else if (usingSmallScreenVersion && !usingMobileVersion && !freezr.app.isWebBased) { // electron 
 				document.getElementById('click_topLogo').style.left="65px";
 				document.getElementById('click_topLogo').style.top="4px";
 				document.getElementById('topBar').style.paddingLeft="100px";
@@ -993,17 +1005,28 @@ var setMobileVersion = function(force) {
 		}
 		
 		document.getElementById("menuInner").className = isSmallScreen? "xtraMenu_Mobile":"";
-	}
-	if (usingSmallScreenVersion) {
-		var margin = parseInt((window.innerWidth-140)/9);
-		document.getElementById('click_xtraMenuSlider_0').style.marginLeft=margin+"px";
-		document.getElementById('click_syncNow_0').style.marginLeft=margin+"px";
-		document.getElementById('click_newNote_0').style.marginLeft=margin+"px";
+
 	}
 
-	document.getElementById('editorContainer').className = document.getElementById('editorContainer').className.replace(usingMobileVersion?  "small":"large" ,usingMobileVersion? "large":"small");
+	screens.width = window.innerWidth;
+	screens.height = window.innerHeight;
 
-	initialiseEditors(); 
+	if (!androidException) {
+		if (usingSmallScreenVersion || isMobile()) {
+			var margin = parseInt((window.innerWidth-50-50-(40*3))/4);
+			document.getElementById('click_xtraMenuSlider_0').style.marginLeft=margin+"px";
+			document.getElementById('click_syncNow_0').style.marginLeft=margin+"px";
+			document.getElementById('click_newNote_0').style.marginLeft=margin+"px";
+		} else {
+			var margin = parseInt((window.innerWidth-125-50-(96*3))/3);
+			document.getElementById('click_xtraMenuSlider_0').style.marginLeft="0px";
+			document.getElementById('click_syncNow_0').style.marginLeft=margin+"px";
+			document.getElementById('click_newNote_0').style.marginLeft=margin+"px";			
+		}
+		document.getElementById('editorContainer').className = document.getElementById('editorContainer').className.replace(usingMobileVersion?  "small":"large" ,usingMobileVersion? "large":"small");
+
+		initialiseEditors(); 
+	}	
 }
 var hideLeftMenu = function() {
 	//
@@ -1012,13 +1035,20 @@ var hideLeftMenu = function() {
 var toggleLeftMenu = function () {
 	var hideMenu = document.getElementById('click_menuBackGround').style.display=="block"; 
 
+	document.getElementById('leftBar').style.top = ((usingMobileVersion || usingSmallScreenVersion) && hasiPhoneHeader())? "70px":null;
+
 	document.getElementById('leftBar').style["-webkit-transform"] = hideMenu? "translate3d(0, 0, 0)":"translate3d(250px, 0, 0)";
-	if (isMobile()) document.getElementById('topBar').style["-webkit-transform"] = (hideMenu)? "translate3d(0, -50px, 0)":"translate3d(0, 0, 0)";
 	document.getElementById('click_menuBackGround').style.display = hideMenu? "none" : "block";
 	if (hideMenu) window.scrollTop = 0;
-	var editorDivList = document.getElementsByClassName("note-editing-area");
-	if (editorDivList.length>0) editorDivList[0].style.height = hideMenu? null:((window.innerHeight-editorDivList[0].offsetTop-50)+"px");
+	//var editorDivList = document.getElementsByClassName("note-editing-area");
+	//if (editorDivList.length>0) editorDivList[0].style.height = hideMenu? null:((window.innerHeight-editorDivList[0].offsetTop-150)+"px");
+	//if (editorDivList.length<=0) console.log("No editorDivList")
 	document.getElementById("idInfo").style.display= hideMenu? "block":"none";
+
+	var theBod = document.getElementsByTagName("BODY")[0];
+	theBod.style.overflow = ( (usingMobileVersion || usingSmallScreenVersion) && !hideMenu)? "hidden":"auto";
+	theBod.style.height = ( (usingMobileVersion || usingSmallScreenVersion) && !hideMenu)? "100%":null;
+
 }
 window.onresize = function(event) {
 	//
@@ -1035,6 +1065,7 @@ var doSyncPosts = function () {
 		console.log("error: cant sync with bad password");
 	} else if (!stats.syncInProgress) {
 		//onsole.log("going to sync "+freezr_server_address+" alreadySyncedOnce:"+stats.alreadySyncedOnce);
+		document.getElementById("click_syncNow_0").className = document.getElementById("click_syncNow_0").className.replace("fa fa-refresh clickable topBut","fa fa-spin fa-refresh topBut");
 		stats.syncCounter = 1;
 		stats.syncInProgress = true;
 		notery.sync("posts", {
@@ -1052,7 +1083,8 @@ var doSyncPosts = function () {
 };
 var clickedToSyncPosts = function() {
 	if (!freezr.app.isWebBased && !freezr_app_code) {
-		document.getElementById("click_syncNow_0").className = document.getElementById("click_syncNow_0").className.replace("fa fa-spin fa-refresh topBut","fa fa-refresh clickable topBut");
+		// review oct 2017
+		//document.getElementById("click_syncNow_0").className = document.getElementById("click_syncNow_0").className.replace("fa fa-spin fa-refresh topBut","fa fa-refresh clickable topBut");
 		freezr.html.freezrMenuOpen();
 	} else if (stats.encryptFault) {
 		showWarning("Please enter your password to sync.",3000)
@@ -1136,6 +1168,7 @@ var wrapUpTryingToSync = function() {
 		setTimeout(toggleLeftMenu,10);
 	}
 }
+// window.onfocus = doSyncPosts; // // review oct 2017
 
 // SEARCH
 var doSearchLocally = function(what) {
@@ -1250,7 +1283,8 @@ var doSearchOnline = function(what) {
 
 
 // OTHER - Backups, online area
-var offlineLoginCallback = function(jsonResp){
+// // review oct 2017 var offlineLoginCallback = function(jsonResp){
+freezr.app.loginCallback = function(jsonResp){
 	//onsole.log("GOT offlineLoginCallback CALLBACK "+JSON.stringify(jsonResp));
 	if (jsonResp.error) {
 		showWarning("Could not log you in - "+jsonResp.error,3000);
@@ -1259,6 +1293,7 @@ var offlineLoginCallback = function(jsonResp){
 		notery.data.freezr_server_address = freezr_server_address;
 		notery.data.freezr_app_code = freezr_app_code;
 		notery.data.freezr_user_is_admin = freezr_user_is_admin;
+		notery.save(); // review oct 2017
 		doSyncPosts();
 	}
 }
@@ -1447,8 +1482,14 @@ var encryptedPost = function(aPost) {
 		}
 		aPost.cipher = sjcl.encrypt(stats.encryptPW, JSON.stringify(encrypted_parts) );
 		aPost.body= null;
-	} else if (notery.data.encryptDo) {
-		throw ("no password - cannot encrypt");
+	} else {
+		// review oct 2017
+		console.log("NOT ENCYPTING? "+notery.data.encryptDo)
+		if (aPost.body && aPost.body.length>0) aPost.cipher = null;
+		if (notery.data.encryptDo) {
+			showWarning("ERROR - ENcryted Password exists ")
+			throw ("no password - cannot encrypt");
+		}
 	} 
 	return aPost
 }
@@ -1566,17 +1607,30 @@ var decryptAllPosts = function() {
        //onsole.log("cleanElementNotery called on "+anEl.id +"of tag "+anEl.tagName+" with child of tagname "+(aChild?(aChild.tagname + " type "+aChild.nodeType):"no child") )
       while (aChild ) {
         //onsole.log("cleaning "+aChild.tagName+" node type is "+aChild.nodeType);
-        if (aChild.nodeType==3){
+        if (aChild.nodeType==3){ // leave text as is
           aChild=aChild.nextSibling;
-        } else if ((aChild.tagName && ["meta","META","style","STYLE","XML","head","link","o"].indexOf(aChild.tagName) > -1) || aChild.nodeType==8)  {
+        } else if ((aChild.tagName && ["meta","META","style","STYLE","XML","head","link","o"].indexOf(aChild.tagName) > -1) 
+        		|| aChild.nodeType==8 
+        		|| (aChild.innerHTML.trim() == ""  && ["p","li"].indexOf(aChild.tagName) > -1) 
+        	)   {
+          // remove comments
           var oldChild = aChild;
           aChild=aChild.nextSibling;
           oldChild.parentNode.removeChild(oldChild);
         } else {
+
+          if (aChild.tagName && ["ol","li","ul","p","div","span", "br", "b", "i", "u", "a", "font"].indexOf(aChild.tagName.toLowerCase()) == -1) {
+	          var newChild = document.createElement("span");
+	          newChild.innerHTML = aChild.innerHTML+"";
+	          aChild.parentNode.insertBefore(newChild, aChild.nextSibling);
+	          aChild.parentNode.removeChild(aChild);
+	          aChild=newChild;
+	      } 
           var styleTags = [];
-          ["color","background-color","font-weight", "font-style", "text-decoration","width"].forEach(function(aStyle) {
+          ["color","background-color","font-weight", "font-style", "text-decoration","width", "href", "b", "i", "u"].forEach(function(aStyle) {
             if (aChild.style[aStyle] && aChild.style[aStyle]!="" && aChild.style[aStyle]!="normal" && aChild.style[aStyle]!="rgb(0, 0, 0)") styleTags.push([aStyle,aChild.style[aStyle]]);
           });
+          /* Old version - console
           var attributesToKeep = ["created"];
           if (aChild && aChild.attributes && aChild.attributes.length>0) {
             for (var i=0; i<aChild.attributes.length; i++) {
@@ -1590,7 +1644,11 @@ var decryptAllPosts = function() {
                 }
             }
           }
-          aChild.style = null;
+          */
+          //aChild.style = null;
+          var attributeList = ["style", "width", "border", "cellpadding", "cellspacing"]
+          attributeList.forEach(function(anAttr) {aChild.removeAttribute(anAttr)} );
+          
           styleTags.forEach(function(aStyleArray) {if (aStyleArray[1]) aChild.style[aStyleArray[0] ]= aStyleArray[1] });
           cleanElementNotery(aChild)
           aChild=aChild.nextSibling;

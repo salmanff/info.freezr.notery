@@ -8,9 +8,12 @@
  *
  * Date: 2016-08-08T01:21Z
  * 
- * With a couple of modifications for notery - August 2016
+ * With a couple of modifications for notery - August 2016 - October 2017
  * 
  */
+// notery
+var noteryPat = false; // notery (Pat= Paste as Text)
+
 (function (factory) {
   /* global define */
   if (typeof define === 'function' && define.amd) {
@@ -3860,9 +3863,9 @@
       var keyMap = options.keyMap[agent.isMac ? 'mac' : 'pc'];
       var keys = [];
 
-      if (event.metaKey) { keys.push('CMD'); }
+      if (event.metaKey) { keys.push('CMD');}
       if (event.ctrlKey && !event.altKey) { keys.push('CTRL'); }
-      if (event.shiftKey) { keys.push('SHIFT'); }
+      if (event.shiftKey) { keys.push('SHIFT');  }
 
       var keyName = key.nameFromCode[event.keyCode];
       if (keyName) {
@@ -3870,9 +3873,15 @@
       }
 
       var eventName = keyMap[keys.join('+')];
+      
+      noteryPat=false; // notery
       if (eventName) {
-        event.preventDefault();
-        context.invoke(eventName);
+        if (eventName == "pasteAsText") { // notery add - go to regular pasting with noertyPat flag on
+          noteryPat = true;
+        } else {
+          event.preventDefault();
+          context.invoke(eventName);
+        }
       } else if (key.isEdit(event.keyCode)) {
         this.afterCommand();
       }
@@ -4070,7 +4079,7 @@
       bullet.insertUnorderedList(editable);
     });
     context.memo('help.insertUnorderedList', lang.help.insertUnorderedList);
-
+    
     this.indent = this.wrapCommand(function () {
       bullet.indent(editable);
     });
@@ -4602,6 +4611,9 @@
 
     this.pasteByEvent = function (event) {
       var clipboardData = event.originalEvent.clipboardData;
+      // notery add:
+      if (noteryPat && event.originalEvent.clipboardData.getData) clipboardData = event.originalEvent.clipboardData.getData("text/plain");
+
       if (clipboardData && clipboardData.items && clipboardData.items.length) {
         var item = list.head(clipboardData.items);
         if (item.kind === 'file' && item.type.indexOf('image/') !== -1) {
@@ -6963,6 +6975,7 @@
           // notery 'TAB': 'tab',
           'TAB': 'indent', // notery added
           'CTRL+L': 'insertUnorderedList', // notery added
+          'CTRL+SHIFT+V': 'pasteAsText', // notery added
           'SHIFT+TAB': 'outdent', // notery added 
           // 'SHIFT+TAB': 'untab',
           'CTRL+B': 'bold',
@@ -6997,6 +7010,7 @@
           'CMD+Y': 'redo', // notery added
           'TAB': 'indent', // notery added
           'CMD+L': 'insertUnorderedList', // notery added
+          'CMD+SHIFT+V': 'pasteAsText', // notery added
           'SHIFT+TAB': 'outdent', // notery added
           //'TAB': 'tab', notery removed
           // 'SHIFT+TAB': 'untab', notery removed
